@@ -1,0 +1,757 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pascal's Triangle - Sierpinski Pattern Generator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: hsl(210, 20%, 98%);
+            color: hsl(224, 71%, 4%);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* Header */
+        .header {
+            background: white;
+            border-bottom: 1px solid hsl(214, 32%, 91%);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            padding: 24px 0;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 8px;
+            color: hsl(224, 71%, 4%);
+        }
+
+        .header p {
+            text-align: center;
+            color: hsl(215, 16%, 46%);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        /* Controls */
+        .controls {
+            background: white;
+            border: 1px solid hsl(214, 32%, 91%);
+            border-radius: 8px;
+            padding: 24px;
+            margin: 32px 0;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .controls-row {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
+            flex-wrap: wrap;
+            margin-bottom: 16px;
+        }
+
+        .input-group {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .input-group label {
+            font-weight: 500;
+            white-space: nowrap;
+        }
+
+        .input-group input {
+            width: 120px;
+            padding: 8px 12px;
+            border: 1px solid hsl(214, 32%, 91%);
+            border-radius: 6px;
+            text-align: center;
+            font-weight: 500;
+        }
+
+        .input-group input:focus {
+            outline: none;
+            border-color: hsl(207, 90%, 54%);
+            box-shadow: 0 0 0 3px rgba(33, 150, 243, 0.1);
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: 1px solid hsl(214, 32%, 91%);
+            border-radius: 6px;
+            background: white;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn:hover {
+            background: hsl(210, 40%, 96%);
+        }
+
+        .btn-primary {
+            background: hsl(207, 90%, 54%);
+            color: white;
+            border-color: hsl(207, 90%, 54%);
+        }
+
+        .btn-primary:hover {
+            background: hsl(207, 90%, 48%);
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px -6px rgba(33, 150, 243, 0.3);
+        }
+
+        .btn-secondary {
+            background: hsl(210, 40%, 95%);
+            color: hsl(215, 25%, 27%);
+        }
+
+        .btn-small {
+            padding: 6px 12px;
+            font-size: 14px;
+        }
+
+        .zoom-controls {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
+            padding-top: 16px;
+            border-top: 1px solid hsl(214, 32%, 91%);
+        }
+
+        .zoom-level {
+            min-width: 80px;
+            text-align: center;
+            color: hsl(215, 16%, 46%);
+            font-size: 14px;
+        }
+
+        /* Canvas Container */
+        .canvas-container {
+            background: white;
+            border: 1px solid hsl(214, 32%, 91%);
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            margin: 32px 0;
+        }
+
+        .canvas-header {
+            background: hsl(210, 40%, 96%);
+            padding: 16px 24px;
+            border-bottom: 1px solid hsl(214, 32%, 91%);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .canvas-header h2 {
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+
+        .legend {
+            display: flex;
+            gap: 24px;
+            font-size: 14px;
+            color: hsl(215, 16%, 46%);
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .legend-color {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+
+        .legend-odd {
+            background: hsl(207, 90%, 54%);
+        }
+
+        .legend-even {
+            background: transparent;
+            border: 1px solid hsl(214, 32%, 91%);
+        }
+
+        .canvas-wrapper {
+            padding: 32px;
+            text-align: center;
+        }
+
+        #triangleCanvas {
+            max-width: 100%;
+            border-radius: 4px;
+            cursor: grab;
+        }
+
+        #triangleCanvas:active {
+            cursor: grabbing;
+        }
+
+        /* Info Grid */
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 24px;
+            margin: 32px 0;
+        }
+
+        .info-card {
+            background: white;
+            border: 1px solid hsl(214, 32%, 91%);
+            border-radius: 8px;
+            padding: 24px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .info-card h3 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 16px;
+        }
+
+        .info-card p {
+            color: hsl(215, 16%, 46%);
+            margin-bottom: 12px;
+            font-size: 14px;
+        }
+
+        .formula {
+            font-weight: 500;
+            color: hsl(224, 71%, 4%);
+            background: hsl(210, 40%, 96%);
+            padding: 8px 12px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+        }
+
+        /* Statistics */
+        .stats {
+            background: hsl(210, 40%, 96%);
+            border: 1px solid hsl(214, 32%, 91%);
+            border-radius: 8px;
+            padding: 24px;
+            margin: 24px 0;
+        }
+
+        .stats-grid {
+            display: flex;
+            justify-content: center;
+            gap: 48px;
+            flex-wrap: wrap;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: hsl(207, 90%, 54%);
+        }
+
+        .stat-label {
+            color: hsl(215, 16%, 46%);
+            font-size: 14px;
+        }
+
+        /* Error */
+        .error {
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+            color: #dc2626;
+            padding: 12px;
+            border-radius: 6px;
+            margin-top: 16px;
+        }
+
+        /* Footer */
+        .footer {
+            background: white;
+            border-top: 1px solid hsl(214, 32%, 91%);
+            padding: 32px 0;
+            margin-top: 64px;
+            text-align: center;
+            color: hsl(215, 16%, 46%);
+            font-size: 14px;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .container {
+                padding: 0 16px;
+            }
+            
+            .controls-row {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .zoom-controls {
+                flex-wrap: wrap;
+                gap: 8px;
+            }
+
+            .info-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .stats-grid {
+                gap: 24px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="container">
+            <h1>🔺 Pascal's Triangle Generator</h1>
+            <p>Explore the beauty of Pascal's Triangle and discover the hidden Sierpinski Triangle pattern formed by highlighting odd numbers</p>
+        </div>
+    </header>
+
+    <main class="container">
+        <!-- Controls -->
+        <div class="controls">
+            <div class="controls-row">
+                <div class="input-group">
+                    <label for="rowInput">📊 Number of Rows:</label>
+                    <input type="number" id="rowInput" min="1" max="1024" value="8">
+                </div>
+                
+                <button class="btn btn-primary" id="generateBtn">
+                    ▶ Generate Triangle
+                </button>
+                
+                <button class="btn btn-secondary" id="clearBtn">
+                    🗑 Clear
+                </button>
+            </div>
+
+            <div class="zoom-controls">
+                <button class="btn btn-small" id="zoomOutBtn">🔍-</button>
+                <div class="zoom-level" id="zoomLevel">100%</div>
+                <button class="btn btn-small" id="zoomInBtn">🔍+</button>
+                <button class="btn btn-small" id="resetViewBtn">🔄</button>
+                <div style="width: 1px; height: 32px; background: hsl(214, 32%, 91%);"></div>
+                <button class="btn btn-small" id="toggleNumbersBtn">👁</button>
+            </div>
+
+            <div id="errorMessage"></div>
+        </div>
+
+        <!-- Canvas Container -->
+        <div class="canvas-container">
+            <div class="canvas-header">
+                <h2>🌐 Sierpinski Triangle Pattern</h2>
+                <div class="legend">
+                    <div class="legend-item">
+                        <div class="legend-color legend-odd"></div>
+                        <span>Odd Numbers</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color legend-even"></div>
+                        <span>Even Numbers</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="canvas-wrapper">
+                <canvas id="triangleCanvas" width="800" height="600">
+                    Your browser does not support HTML5 Canvas.
+                </canvas>
+            </div>
+        </div>
+
+        <!-- Information Panel -->
+        <div class="info-grid">
+            <div class="info-card">
+                <h3>⭕ About Pascal's Triangle</h3>
+                <p>Pascal's Triangle is a triangular array of numbers where each number is the sum of the two numbers directly above it.</p>
+                <p>The triangle has many fascinating mathematical properties and appears in combinatorics, probability, and algebra.</p>
+                <div class="formula">Formula: C(n,k) = n! / (k!(n-k)!)</div>
+            </div>
+            
+            <div class="info-card">
+                <h3>✨ Sierpinski Triangle Pattern</h3>
+                <p>When we highlight the odd numbers in Pascal's Triangle, a beautiful fractal pattern emerges: the Sierpinski Triangle.</p>
+                <p>This self-similar pattern repeats at every scale and demonstrates the deep connections between number theory and geometry.</p>
+                <div class="formula">Pattern Rule: Highlight positions where Pascal's triangle values are odd</div>
+            </div>
+        </div>
+
+        <!-- Statistics -->
+        <div class="stats">
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <div class="stat-value" id="totalNodes">0</div>
+                    <div class="stat-label">Total Nodes</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="oddNodes">0</div>
+                    <div class="stat-label">Odd Numbers</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="evenNodes">0</div>
+                    <div class="stat-label">Even Numbers</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="currentRows">0</div>
+                    <div class="stat-label">Current Rows</div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <p>© 2024 Pascal's Triangle Generator. Educational mathematical visualization tool.</p>
+            <p>Built with HTML5 Canvas and mathematical algorithms for pattern discovery.</p>
+        </div>
+    </footer>
+
+    <script>
+        class PascalTriangleGenerator {
+            constructor() {
+                this.triangleData = [];
+                this.zoom = 1;
+                this.panX = 0;
+                this.panY = 0;
+                this.showNumbers = true;
+                this.isDragging = false;
+                this.lastMousePos = { x: 0, y: 0 };
+                
+                this.canvas = document.getElementById('triangleCanvas');
+                this.ctx = this.canvas.getContext('2d');
+                
+                this.setupEventListeners();
+                this.setupCanvas();
+            }
+
+            setupEventListeners() {
+                // Controls
+                document.getElementById('generateBtn').addEventListener('click', () => this.generateTriangle());
+                document.getElementById('clearBtn').addEventListener('click', () => this.clearTriangle());
+                document.getElementById('zoomInBtn').addEventListener('click', () => this.zoomIn());
+                document.getElementById('zoomOutBtn').addEventListener('click', () => this.zoomOut());
+                document.getElementById('resetViewBtn').addEventListener('click', () => this.resetView());
+                document.getElementById('toggleNumbersBtn').addEventListener('click', () => this.toggleNumbers());
+                
+                // Input
+                document.getElementById('rowInput').addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') this.generateTriangle();
+                });
+
+                // Canvas events
+                this.canvas.addEventListener('mousedown', (e) => this.handleMouseDown(e));
+                this.canvas.addEventListener('mousemove', (e) => this.handleMouseMove(e));
+                this.canvas.addEventListener('mouseup', () => this.handleMouseUp());
+                this.canvas.addEventListener('mouseleave', () => this.handleMouseUp());
+                this.canvas.addEventListener('wheel', (e) => this.handleWheel(e));
+
+                // Resize
+                window.addEventListener('resize', () => this.handleResize());
+            }
+
+            setupCanvas() {
+                const dpr = window.devicePixelRatio || 1;
+                this.canvas.width = 800 * dpr;
+                this.canvas.height = 600 * dpr;
+                this.canvas.style.width = '800px';
+                this.canvas.style.height = '600px';
+                this.ctx.scale(dpr, dpr);
+                this.handleResize();
+            }
+
+            handleResize() {
+                const container = this.canvas.parentElement;
+                const containerWidth = container.offsetWidth - 64;
+                const aspectRatio = 800 / 600;
+                
+                if (containerWidth < 800) {
+                    this.canvas.style.width = containerWidth + 'px';
+                    this.canvas.style.height = (containerWidth / aspectRatio) + 'px';
+                } else {
+                    this.canvas.style.width = '800px';
+                    this.canvas.style.height = '600px';
+                }
+            }
+
+            generateTriangle() {
+                const rowCount = parseInt(document.getElementById('rowInput').value) || 1;
+                
+                if (rowCount < 1 || rowCount > 1024) {
+                    this.showError("Please enter a valid number between 1 and 1024");
+                    return;
+                }
+                
+                this.clearError();
+
+                // Calculate Pascal's Triangle
+                const triangle = [];
+                for (let i = 0; i <= rowCount; i++) {
+                    triangle[i] = [];
+                    for (let j = 0; j <= i; j++) {
+                        // Use Lucas' theorem for odd/even determination
+                        const isOdd = (j & i) === j;
+                        
+                        // Only calculate actual values if showing numbers
+                        let value = null;
+                        if (this.showNumbers) {
+                            if (j === 0 || j === i) {
+                                value = 1n;
+                            } else if (triangle[i-1] && triangle[i-1][j-1] && triangle[i-1][j]) {
+                                const prevLeft = triangle[i-1][j-1].value;
+                                const prevRight = triangle[i-1][j].value;
+                                if (prevLeft !== null && prevRight !== null) {
+                                    value = prevLeft + prevRight;
+                                }
+                            }
+                        }
+                        
+                        triangle[i][j] = { value, isOdd };
+                    }
+                }
+
+                // Calculate statistics
+                let oddCount = 0;
+                let evenCount = 0;
+                
+                triangle.forEach(row => {
+                    row.forEach(cell => {
+                        if (cell.isOdd) {
+                            oddCount++;
+                        } else {
+                            evenCount++;
+                        }
+                    });
+                });
+
+                this.triangleData = triangle;
+                this.updateStats({
+                    totalNodes: oddCount + evenCount,
+                    oddNodes: oddCount,
+                    evenNodes: evenCount,
+                    currentRows: rowCount
+                });
+
+                this.renderTriangle();
+            }
+
+            clearTriangle() {
+                this.triangleData = [];
+                this.updateStats({
+                    totalNodes: 0,
+                    oddNodes: 0,
+                    evenNodes: 0,
+                    currentRows: 0
+                });
+                this.renderTriangle();
+            }
+
+            zoomIn() {
+                this.zoom = Math.min(this.zoom * 1.5, 10);
+                this.updateZoomDisplay();
+                this.renderTriangle();
+            }
+
+            zoomOut() {
+                this.zoom = Math.max(this.zoom / 1.5, 0.1);
+                this.updateZoomDisplay();
+                this.renderTriangle();
+            }
+
+            resetView() {
+                this.zoom = 1;
+                this.panX = 0;
+                this.panY = 0;
+                this.updateZoomDisplay();
+                this.renderTriangle();
+            }
+
+            toggleNumbers() {
+                this.showNumbers = !this.showNumbers;
+                const btn = document.getElementById('toggleNumbersBtn');
+                btn.textContent = this.showNumbers ? '👁' : '🙈';
+                
+                // Regenerate triangle with new number setting
+                if (this.triangleData.length > 0) {
+                    this.generateTriangle();
+                }
+            }
+
+            handleMouseDown(e) {
+                this.isDragging = true;
+                this.lastMousePos = { x: e.clientX, y: e.clientY };
+                this.canvas.style.cursor = 'grabbing';
+            }
+
+            handleMouseMove(e) {
+                if (!this.isDragging) return;
+                
+                const deltaX = e.clientX - this.lastMousePos.x;
+                const deltaY = e.clientY - this.lastMousePos.y;
+                
+                this.panX += deltaX;
+                this.panY += deltaY;
+                
+                this.lastMousePos = { x: e.clientX, y: e.clientY };
+                this.renderTriangle();
+            }
+
+            handleMouseUp() {
+                this.isDragging = false;
+                this.canvas.style.cursor = 'grab';
+            }
+
+            handleWheel(e) {
+                e.preventDefault();
+                
+                const rect = this.canvas.getBoundingClientRect();
+                const mouseX = e.clientX - rect.left;
+                const mouseY = e.clientY - rect.top;
+                
+                const zoomFactor = e.deltaY > 0 ? 0.9 : 1.1;
+                const newZoom = Math.max(0.1, Math.min(10, this.zoom * zoomFactor));
+                
+                if (newZoom !== this.zoom) {
+                    const zoomChange = newZoom / this.zoom;
+                    this.panX = mouseX - (mouseX - this.panX) * zoomChange;
+                    this.panY = mouseY - (mouseY - this.panY) * zoomChange;
+                    this.zoom = newZoom;
+                    this.updateZoomDisplay();
+                    this.renderTriangle();
+                }
+            }
+
+            renderTriangle() {
+                this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+                
+                if (this.triangleData.length === 0) return;
+
+                this.ctx.save();
+                this.ctx.translate(this.panX, this.panY);
+                this.ctx.scale(this.zoom, this.zoom);
+
+                const centerX = 400;
+                const startY = 50;
+                const baseRowHeight = Math.max(25, Math.min(60, (550 - startY) / Math.max(this.triangleData.length, 1)));
+                const baseNodeSize = Math.max(8, Math.min(20, baseRowHeight * 0.4));
+                
+                const rowHeight = baseRowHeight;
+                const nodeSize = baseNodeSize;
+                const nodeSpacing = nodeSize * 2.5;
+
+                for (let i = 0; i < this.triangleData.length; i++) {
+                    const row = this.triangleData[i];
+                    const rowWidth = row.length * nodeSpacing;
+                    const startX = centerX - rowWidth / 2;
+                    
+                    for (let j = 0; j < row.length; j++) {
+                        const x = startX + j * nodeSpacing + nodeSpacing / 2;
+                        const y = startY + i * rowHeight;
+                        const cell = row[j];
+                        
+                        if (cell.isOdd) {
+                            // Draw filled circle for odd numbers
+                            this.ctx.fillStyle = 'hsl(207, 90%, 54%)';
+                            this.ctx.beginPath();
+                            this.ctx.arc(x, y, nodeSize, 0, 2 * Math.PI);
+                            this.ctx.fill();
+                            
+                            // Add text if showing numbers
+                            if (this.showNumbers && cell.value !== null) {
+                                const valueString = cell.value.toString();
+                                const displayValue = valueString.length > 8 
+                                    ? valueString.slice(0, 3) + '...' 
+                                    : valueString;
+                                
+                                this.ctx.fillStyle = 'white';
+                                this.ctx.font = `${Math.max(6, nodeSize * 0.6)}px Inter, sans-serif`;
+                                this.ctx.textAlign = 'center';
+                                this.ctx.textBaseline = 'middle';
+                                this.ctx.fillText(displayValue, x, y);
+                            }
+                        } else {
+                            // Draw hollow circle for even numbers
+                            this.ctx.strokeStyle = 'hsl(214, 32%, 70%)';
+                            this.ctx.lineWidth = Math.max(1, nodeSize * 0.1);
+                            this.ctx.beginPath();
+                            this.ctx.arc(x, y, nodeSize, 0, 2 * Math.PI);
+                            this.ctx.stroke();
+                            
+                            // Add text if showing numbers
+                            if (this.showNumbers && cell.value !== null) {
+                                const valueString = cell.value.toString();
+                                const displayValue = valueString.length > 8 
+                                    ? valueString.slice(0, 3) + '...' 
+                                    : valueString;
+                                
+                                this.ctx.fillStyle = 'hsl(215, 16%, 46%)';
+                                this.ctx.font = `${Math.max(6, nodeSize * 0.6)}px Inter, sans-serif`;
+                                this.ctx.textAlign = 'center';
+                                this.ctx.textBaseline = 'middle';
+                                this.ctx.fillText(displayValue, x, y);
+                            }
+                        }
+                    }
+                }
+                
+                this.ctx.restore();
+            }
+
+            updateStats(stats) {
+                document.getElementById('totalNodes').textContent = stats.totalNodes;
+                document.getElementById('oddNodes').textContent = stats.oddNodes;
+                document.getElementById('evenNodes').textContent = stats.evenNodes;
+                document.getElementById('currentRows').textContent = stats.currentRows;
+            }
+
+            updateZoomDisplay() {
+                document.getElementById('zoomLevel').textContent = Math.round(this.zoom * 100) + '%';
+            }
+
+            showError(message) {
+                const errorDiv = document.getElementById('errorMessage');
+                errorDiv.innerHTML = `<div class="error">⚠ ${message}</div>`;
+            }
+
+            clearError() {
+                document.getElementById('errorMessage').innerHTML = '';
+            }
+        }
+
+        // Initialize the application
+        document.addEventListener('DOMContentLoaded', () => {
+            window.triangleGenerator = new PascalTriangleGenerator();
+        });
+    </script>
+</body>
+</html>
